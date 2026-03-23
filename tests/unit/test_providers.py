@@ -1,0 +1,119 @@
+"""Unit tests for LiteLLM Gateway and model resolution."""
+
+import pytest
+
+from praxis_ai.core.agent.types import AgentMessage, ToolCall
+from praxis_ai.core.config.settings import Settings
+from praxis_ai.core.providers.gateway import LiteLLMGateway
+from praxis_ai.core.providers.models import resolve_model_name
+
+
+def test_model_alias_resolution():
+    assert (
+        resolve_model_name("claude-3-7-sonnet")
+        == "anthropic/claude-3-7-sonnet-20250219"
+    )
+    assert resolve_model_name("gpt-4o") == "openai/gpt-4o"
+    assert resolve_model_name("gemini-flash") == "gemini/gemini-2.5-flash"
+    assert resolve_model_name("deepseek-r1") == "ollama/deepseek-r1:14b"
+    assert (
+        resolve_model_name("custom/my-fine-tuned-model") == "custom/my-fine-tuned-model"
+    )
+
+
+def test_gateway_message_formatting():
+    settings = Settings(model="anthropic/claude-3-7-sonnet-20250219")
+    gateway = LiteLLMGateway(settings=settings)
+
+    messages = [
+        AgentMessage(role="system", content="You are a helpful coding assistant."),
+        AgentMessage(role="user", content="List directory contents"),
+        AgentMessage(
+            role="assistant",
+            content=None,
+            tool_calls=[
+                ToolCall(id="call_123", name="list_dir", arguments={"path": "."})
+            ],
+        ),
+        AgentMessage(
+            role="tool",
+            content='["file1.txt", "file2.py"]',
+            tool_call_id="call_123",
+            name="list_dir",
+        ),
+    ]
+
+    formatted = gateway._format_messages_for_provider(messages)
+    assert len(formatted) == 4
+    assert formatted[0]["role"] == "system"
+    assert formatted[1]["role"] == "user"
+    assert formatted[2]["role"] == "assistant"
+    assert "tool_calls" in formatted[2]
+    assert formatted[2]["tool_calls"][0]["function"]["name"] == "list_dir"
+    assert formatted[3]["role"] == "tool"
+    assert formatted[3]["tool_call_id"] == "call_123"
+
+
+@pytest.mark.asyncio
+async def test_token_counter():
+    gateway = LiteLLMGateway()
+    tokens = await gateway.count_tokens("Hello, world! This is a test.")
+    assert tokens > 0
+
+
+def test_extract_fallback_tool_calls():
+    # 1. Plain JSON tool call (what smaller Ollama models often output)
+    raw_json = '{"name": "read_file", "arguments": {"path": "README.md"}}'
+    tools, _ = LiteLLMGateway._extract_fallback_tool_calls(
+        raw_json, valid_tool_names={"read_file", "write_file"}
+    )
+    assert len(tools) == 1
+    assert tools[0].name == "read_file"
+    assert tools[0].arguments == {"path": "README.md"}
+
+    # 2. Markdown fenced JSON tool call
+    md_json = """I will inspect the README file now.
+```json
+{
+  "name": "read_file",
+  "arguments": {
+    "path": "README.md"
+  }
+}
+```"""
+    tools, text = LiteLLMGateway._extract_fallback_tool_calls(
+        md_json, valid_tool_names={"read_file"}
+    )
+    assert len(tools) == 1
+    assert tools[0].name == "read_file"
+    assert tools[0].arguments == {"path": "README.md"}
+    assert "I will inspect the README file now." in text
+
+    # 3. XML style tool call
+    xml_text = '<tool_call>{"name": "read_file", "arguments": {"path": "src/main.py"}}</tool_call>'
+    tools, _ = LiteLLMGateway._extract_fallback_tool_calls(
+        xml_text, valid_tool_names={"read_file"}
+    )
+    assert len(tools) == 1
+    assert tools[0].name == "read_file"
+    assert tools[0].arguments == {"path": "src/main.py"}
+
+
+def test_unwrap_json_response():
+    # Markdown wrapped JSON response
+    sample = """```json
+{
+  "response": "The README describes the Praxis AI CLI tool."
+}
+```"""
+    unwrapped = LiteLLMGateway._unwrap_json_response(sample)
+    assert unwrapped == "The README describes the Praxis AI CLI tool."
+
+    # Direct JSON response
+    sample_direct = '{"answer": "Here is the summary."}'
+    assert LiteLLMGateway._unwrap_json_response(sample_direct) == "Here is the summary."
+
+    # Normal text left untouched
+    normal = "Just regular markdown explanation."
+    assert LiteLLMGateway._unwrap_json_response(normal) == normal
+
