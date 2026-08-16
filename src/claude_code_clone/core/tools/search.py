@@ -1,21 +1,30 @@
 """Search tools: grep_search and file_glob."""
 
-import fnmatch
 import os
-from pathlib import Path
 import re
+from pathlib import Path
 from typing import Any
+
 from pydantic import BaseModel, Field
+
 from claude_code_clone.core.agent.types import ToolResult
 from claude_code_clone.core.tools.base import BaseTool, ExecutionContext
 from claude_code_clone.core.tools.file_system import IGNORE_PATTERNS
 
 
 class GrepSearchArgs(BaseModel):
-    query: str = Field(description="The regular expression or string pattern to search for")
-    path: str = Field(default=".", description="The directory or file path to search within")
-    case_sensitive: bool = Field(default=False, description="Whether search should be case-sensitive")
-    max_results: int = Field(default=50, description="Maximum number of matching lines to return")
+    query: str = Field(
+        description="The regular expression or string pattern to search for"
+    )
+    path: str = Field(
+        default=".", description="The directory or file path to search within"
+    )
+    case_sensitive: bool = Field(
+        default=False, description="Whether search should be case-sensitive"
+    )
+    max_results: int = Field(
+        default=50, description="Maximum number of matching lines to return"
+    )
 
 
 class GrepSearchTool(BaseTool):
@@ -24,7 +33,9 @@ class GrepSearchTool(BaseTool):
     is_destructive = False
     args_schema = GrepSearchArgs
 
-    async def execute(self, params: dict[str, Any], context: ExecutionContext) -> ToolResult:
+    async def execute(
+        self, params: dict[str, Any], context: ExecutionContext
+    ) -> ToolResult:
         try:
             args = GrepSearchArgs(**params)
             search_root = Path(args.path)
@@ -58,7 +69,11 @@ class GrepSearchTool(BaseTool):
             else:
                 for root, dirs, files in os.walk(search_root):
                     # Filter out ignored directories
-                    dirs[:] = [d for d in dirs if d not in IGNORE_PATTERNS and not d.startswith(".")]
+                    dirs[:] = [
+                        d
+                        for d in dirs
+                        if d not in IGNORE_PATTERNS and not d.startswith(".")
+                    ]
                     for f in files:
                         if f not in IGNORE_PATTERNS and not f.startswith("."):
                             files_to_search.append(Path(root) / f)
@@ -96,7 +111,8 @@ class GrepSearchTool(BaseTool):
             return ToolResult(
                 tool_call_id="",
                 tool_name=self.name,
-                output=f"Found {len(matches)} match(es) for '{args.query}':\n" + result_str,
+                output=f"Found {len(matches)} match(es) for '{args.query}':\n"
+                + result_str,
                 metadata={"match_count": len(matches)},
             )
         except Exception as e:
@@ -109,7 +125,9 @@ class GrepSearchTool(BaseTool):
 
 
 class FileGlobArgs(BaseModel):
-    pattern: str = Field(description="Glob pattern to search for (e.g. '**/*.py', 'infra/**/*.tf')")
+    pattern: str = Field(
+        description="Glob pattern to search for (e.g. '**/*.py', 'infra/**/*.tf')"
+    )
     path: str = Field(default=".", description="Base directory to search from")
 
 
@@ -119,7 +137,9 @@ class FileGlobTool(BaseTool):
     is_destructive = False
     args_schema = FileGlobArgs
 
-    async def execute(self, params: dict[str, Any], context: ExecutionContext) -> ToolResult:
+    async def execute(
+        self, params: dict[str, Any], context: ExecutionContext
+    ) -> ToolResult:
         try:
             args = FileGlobArgs(**params)
             base_dir = Path(args.path)
@@ -158,7 +178,8 @@ class FileGlobTool(BaseTool):
             return ToolResult(
                 tool_call_id="",
                 tool_name=self.name,
-                output=f"Matched {len(matched_files)} file(s) for '{args.pattern}':\n" + "\n".join(matched_files[:100]),
+                output=f"Matched {len(matched_files)} file(s) for '{args.pattern}':\n"
+                + "\n".join(matched_files[:100]),
                 metadata={"count": len(matched_files)},
             )
         except Exception as e:

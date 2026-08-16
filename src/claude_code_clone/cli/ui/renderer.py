@@ -3,18 +3,20 @@
 from rich.console import Console
 from rich.markdown import Markdown
 from rich.panel import Panel
-from rich.syntax import Syntax
 from rich.theme import Theme
+
 from claude_code_clone.core.agent.types import ToolCall, ToolResult
 
-custom_theme = Theme({
-    "info": "cyan",
-    "warning": "yellow",
-    "error": "bold red",
-    "success": "bold green",
-    "tool_name": "bold magenta",
-    "highlight": "bold blue",
-})
+custom_theme = Theme(
+    {
+        "info": "cyan",
+        "warning": "yellow",
+        "error": "bold red",
+        "success": "bold green",
+        "tool_name": "bold magenta",
+        "highlight": "bold blue",
+    }
+)
 
 console = Console(theme=custom_theme)
 
@@ -25,7 +27,9 @@ class TerminalRenderer:
     def __init__(self, c: Console | None = None):
         self.console = c or console
 
-    def render_welcome_banner(self, model: str, workspace: str, rag_enabled: bool) -> None:
+    def render_welcome_banner(
+        self, model: str, workspace: str, rag_enabled: bool
+    ) -> None:
         """Displays the CLI startup banner."""
         banner = (
             f"[bold cyan]🤖 Claude Code Clone[/bold cyan] [dim](Multi-Provider & Enterprise RAG)[/dim]\n"
@@ -51,20 +55,26 @@ class TerminalRenderer:
 
     def render_tool_start(self, tool_call: ToolCall) -> None:
         """Displays tool execution start banner."""
-        args_str = ", ".join(f"{k}={v!r}" for k, v in list(tool_call.arguments.items())[:3])
+        args_str = ", ".join(
+            f"{k}={v!r}" for k, v in list(tool_call.arguments.items())[:3]
+        )
         if len(tool_call.arguments) > 3:
             args_str += ", ..."
-        self.console.print(f"\n[dim]⚡ Executing tool[/dim] [tool_name]{tool_call.name}[/tool_name][dim]({args_str})[/dim]")
+        self.console.print(
+            f"\n[dim]⚡ Executing tool[/dim] [tool_name]{tool_call.name}[/tool_name][dim]({args_str})[/dim]"
+        )
 
     def render_tool_result(self, result: ToolResult) -> None:
         """Displays tool execution output."""
         if result.is_error:
-            self.console.print(Panel(
-                result.output,
-                title=f"[error]Tool Error: {result.tool_name}[/error]",
-                border_style="red",
-                padding=(0, 1),
-            ))
+            self.console.print(
+                Panel(
+                    result.output,
+                    title=f"[error]Tool Error: {result.tool_name}[/error]",
+                    border_style="red",
+                    padding=(0, 1),
+                )
+            )
         else:
             # Check if output contains a diff block
             if "```diff" in result.output:
@@ -74,12 +84,14 @@ class TerminalRenderer:
                 preview = "\n".join(lines[:15])
                 if len(lines) > 15:
                     preview += f"\n[dim]...({len(lines) - 15} more lines hidden)[/dim]"
-                self.console.print(Panel(
-                    preview,
-                    title=f"[dim]Result: {result.tool_name}[/dim]",
-                    border_style="dim",
-                    padding=(0, 1),
-                ))
+                self.console.print(
+                    Panel(
+                        preview,
+                        title=f"[dim]Result: {result.tool_name}[/dim]",
+                        border_style="dim",
+                        padding=(0, 1),
+                    )
+                )
 
     def render_error(self, message: str) -> None:
         """Displays an error alert."""

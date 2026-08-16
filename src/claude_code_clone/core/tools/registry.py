@@ -1,6 +1,7 @@
 """Central tool registry and schema generator."""
 
 from typing import Any
+
 from claude_code_clone.core.agent.types import ToolCall, ToolResult
 from claude_code_clone.core.tools.base import BaseTool, ExecutionContext
 from claude_code_clone.core.tools.bash import BashExecutorTool

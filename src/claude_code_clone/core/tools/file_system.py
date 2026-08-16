@@ -2,21 +2,38 @@
 
 from pathlib import Path
 from typing import Any
+
 from pydantic import BaseModel, Field
+
 from claude_code_clone.core.agent.types import ToolResult
 from claude_code_clone.core.tools.base import BaseTool, ExecutionContext
 from claude_code_clone.utils.diff import apply_block_replacement, compute_unified_diff
 
-IGNORE_PATTERNS = {".git", ".venv", "node_modules", "__pycache__", ".pytest_cache", ".ruff_cache", "dist", "build"}
+IGNORE_PATTERNS = {
+    ".git",
+    ".venv",
+    "node_modules",
+    "__pycache__",
+    ".pytest_cache",
+    ".ruff_cache",
+    "dist",
+    "build",
+}
 
 
 # ----------------------------------------------------------------------
 # Read File Tool
 # ----------------------------------------------------------------------
 class ReadFileArgs(BaseModel):
-    path: str = Field(description="The path to the file to read (relative to workspace or absolute)")
-    start_line: int | None = Field(default=None, description="Optional 1-indexed start line to read from")
-    end_line: int | None = Field(default=None, description="Optional 1-indexed end line (inclusive)")
+    path: str = Field(
+        description="The path to the file to read (relative to workspace or absolute)"
+    )
+    start_line: int | None = Field(
+        default=None, description="Optional 1-indexed start line to read from"
+    )
+    end_line: int | None = Field(
+        default=None, description="Optional 1-indexed end line (inclusive)"
+    )
 
 
 class ReadFileTool(BaseTool):
@@ -25,7 +42,9 @@ class ReadFileTool(BaseTool):
     is_destructive = False
     args_schema = ReadFileArgs
 
-    async def execute(self, params: dict[str, Any], context: ExecutionContext) -> ToolResult:
+    async def execute(
+        self, params: dict[str, Any], context: ExecutionContext
+    ) -> ToolResult:
         try:
             args = ReadFileArgs(**params)
             file_path = Path(args.path)
@@ -62,8 +81,14 @@ class ReadFileTool(BaseTool):
             lines = content.splitlines(keepends=True)
             total_lines = len(lines)
 
-            start = (args.start_line - 1) if args.start_line and args.start_line > 0 else 0
-            end = args.end_line if args.end_line and args.end_line <= total_lines else total_lines
+            start = (
+                (args.start_line - 1) if args.start_line and args.start_line > 0 else 0
+            )
+            end = (
+                args.end_line
+                if args.end_line and args.end_line <= total_lines
+                else total_lines
+            )
 
             if start >= total_lines:
                 return ToolResult(
@@ -83,7 +108,10 @@ class ReadFileTool(BaseTool):
                 tool_call_id="",
                 tool_name=self.name,
                 output=header + formatted_output,
-                metadata={"total_lines": total_lines, "lines_returned": len(selected_lines)},
+                metadata={
+                    "total_lines": total_lines,
+                    "lines_returned": len(selected_lines),
+                },
             )
         except Exception as e:
             return ToolResult(
@@ -98,17 +126,23 @@ class ReadFileTool(BaseTool):
 # Write File Tool
 # ----------------------------------------------------------------------
 class WriteFileArgs(BaseModel):
-    path: str = Field(description="The path to the file to create or overwrite (relative to workspace or absolute)")
+    path: str = Field(
+        description="The path to the file to create or overwrite (relative to workspace or absolute)"
+    )
     content: str = Field(description="The complete content to write into the file")
 
 
 class WriteFileTool(BaseTool):
     name = "write_file"
-    description = "Creates a new file or overwrites an existing file with the provided content."
+    description = (
+        "Creates a new file or overwrites an existing file with the provided content."
+    )
     is_destructive = True
     args_schema = WriteFileArgs
 
-    async def execute(self, params: dict[str, Any], context: ExecutionContext) -> ToolResult:
+    async def execute(
+        self, params: dict[str, Any], context: ExecutionContext
+    ) -> ToolResult:
         try:
             args = WriteFileArgs(**params)
             file_path = Path(args.path)
@@ -125,7 +159,11 @@ class WriteFileTool(BaseTool):
                 tool_call_id="",
                 tool_name=self.name,
                 output=f"Successfully {action.lower()} file '{args.path}' ({line_count} lines written).",
-                metadata={"path": str(file_path), "lines": line_count, "existed": existed},
+                metadata={
+                    "path": str(file_path),
+                    "lines": line_count,
+                    "existed": existed,
+                },
             )
         except Exception as e:
             return ToolResult(
@@ -141,9 +179,16 @@ class WriteFileTool(BaseTool):
 # ----------------------------------------------------------------------
 class EditFileArgs(BaseModel):
     path: str = Field(description="The path to the file to modify")
-    target_content: str = Field(description="The exact block of lines to be replaced in the file")
-    replacement_content: str = Field(description="The new block of lines to replace target_content with")
-    allow_multiple: bool = Field(default=False, description="Set to true if multiple occurrences should be replaced")
+    target_content: str = Field(
+        description="The exact block of lines to be replaced in the file"
+    )
+    replacement_content: str = Field(
+        description="The new block of lines to replace target_content with"
+    )
+    allow_multiple: bool = Field(
+        default=False,
+        description="Set to true if multiple occurrences should be replaced",
+    )
 
 
 class EditFileTool(BaseTool):
@@ -152,7 +197,9 @@ class EditFileTool(BaseTool):
     is_destructive = True
     args_schema = EditFileArgs
 
-    async def execute(self, params: dict[str, Any], context: ExecutionContext) -> ToolResult:
+    async def execute(
+        self, params: dict[str, Any], context: ExecutionContext
+    ) -> ToolResult:
         try:
             args = EditFileArgs(**params)
             file_path = Path(args.path)
@@ -176,7 +223,9 @@ class EditFileTool(BaseTool):
             )
 
             file_path.write_text(new_content, encoding="utf-8")
-            diff = compute_unified_diff(original_content, new_content, from_file=args.path, to_file=args.path)
+            diff = compute_unified_diff(
+                original_content, new_content, from_file=args.path, to_file=args.path
+            )
 
             return ToolResult(
                 tool_call_id="",
@@ -197,9 +246,16 @@ class EditFileTool(BaseTool):
 # List Directory Tool
 # ----------------------------------------------------------------------
 class ListDirArgs(BaseModel):
-    path: str = Field(default=".", description="Path to directory to list (relative to workspace or absolute)")
-    recursive: bool = Field(default=False, description="Whether to recursively list subdirectories")
-    max_depth: int = Field(default=2, description="Maximum directory depth when recursive is true")
+    path: str = Field(
+        default=".",
+        description="Path to directory to list (relative to workspace or absolute)",
+    )
+    recursive: bool = Field(
+        default=False, description="Whether to recursively list subdirectories"
+    )
+    max_depth: int = Field(
+        default=2, description="Maximum directory depth when recursive is true"
+    )
 
 
 class ListDirTool(BaseTool):
@@ -208,7 +264,9 @@ class ListDirTool(BaseTool):
     is_destructive = False
     args_schema = ListDirArgs
 
-    async def execute(self, params: dict[str, Any], context: ExecutionContext) -> ToolResult:
+    async def execute(
+        self, params: dict[str, Any], context: ExecutionContext
+    ) -> ToolResult:
         try:
             args = ListDirArgs(**params)
             target_dir = Path(args.path)
@@ -237,7 +295,10 @@ class ListDirTool(BaseTool):
                 if current_depth > args.max_depth:
                     return
                 try:
-                    items = sorted(current_dir.iterdir(), key=lambda p: (not p.is_dir(), p.name.lower()))
+                    items = sorted(
+                        current_dir.iterdir(),
+                        key=lambda p: (not p.is_dir(), p.name.lower()),
+                    )
                 except PermissionError:
                     return
 

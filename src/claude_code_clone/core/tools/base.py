@@ -2,13 +2,16 @@
 
 from abc import ABC, abstractmethod
 from pathlib import Path
-from typing import Any, Type
+from typing import Any
+
 from pydantic import BaseModel, Field
+
 from claude_code_clone.core.agent.types import ToolResult
 
 
 class ExecutionContext(BaseModel):
     """Context provided to a tool during execution."""
+
     workspace_dir: Path = Field(default_factory=Path.cwd)
     session_id: str = "default"
     metadata: dict[str, Any] = Field(default_factory=dict)
@@ -20,10 +23,12 @@ class BaseTool(ABC):
     name: str
     description: str
     is_destructive: bool = False
-    args_schema: Type[BaseModel]
+    args_schema: type[BaseModel]
 
     @abstractmethod
-    async def execute(self, params: dict[str, Any], context: ExecutionContext) -> ToolResult:
+    async def execute(
+        self, params: dict[str, Any], context: ExecutionContext
+    ) -> ToolResult:
         """Executes the tool with validated parameters."""
         ...
 

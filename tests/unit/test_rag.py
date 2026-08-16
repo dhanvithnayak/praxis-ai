@@ -1,7 +1,9 @@
 """Unit and integration tests for Enterprise RAG subsystem."""
 
 from pathlib import Path
+
 import pytest
+
 from claude_code_clone.core.rag.chunking.code_chunker import CodeChunker
 from claude_code_clone.core.rag.chunking.markdown_chunker import MarkdownChunker
 from claude_code_clone.core.rag.embeddings.fastembed_provider import FastEmbedProvider
@@ -32,7 +34,9 @@ def test_markdown_chunker():
 
 
 def test_code_chunker():
-    code_text = "\n".join(f"resource \"aws_s3_bucket\" \"b_{i}\" {{ bucket = \"corp-{i}\" }}" for i in range(30))
+    code_text = "\n".join(
+        f'resource "aws_s3_bucket" "b_{i}" {{ bucket = "corp-{i}" }}' for i in range(30)
+    )
     doc = Document(content=code_text, source="infra/s3.tf")
     chunker = CodeChunker(max_lines=15, overlap_lines=3)
     chunks = chunker.chunk(doc)
@@ -79,7 +83,11 @@ async def test_rag_engine_lifecycle(tmp_path: Path):
     assert count > 0
 
     # Search
-    results = await engine.search("Where is auth service secret manager configured?", collection="test_infra", top_k=2)
+    results = await engine.search(
+        "Where is auth service secret manager configured?",
+        collection="test_infra",
+        top_k=2,
+    )
     assert len(results) > 0
     assert "vault.corp.internal" in results[0].content
 

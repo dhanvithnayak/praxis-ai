@@ -2,11 +2,14 @@
 
 from pathlib import Path
 from typing import Any
+
 from claude_code_clone.core.config.constants import DEFAULT_RAG_COLLECTION
 from claude_code_clone.core.config.settings import Settings
 from claude_code_clone.core.rag.embeddings.base import BaseEmbeddingProvider
 from claude_code_clone.core.rag.embeddings.fastembed_provider import FastEmbedProvider
-from claude_code_clone.core.rag.embeddings.openai_provider import OpenAIEmbeddingProvider
+from claude_code_clone.core.rag.embeddings.openai_provider import (
+    OpenAIEmbeddingProvider,
+)
 from claude_code_clone.core.rag.ingestion.pipeline import IngestionPipeline
 from claude_code_clone.core.rag.retrieval.hybrid_search import HybridSearch
 from claude_code_clone.core.rag.types import SearchResult
@@ -58,9 +61,13 @@ class RAGEngine:
         """Ingests a file or directory into the vector store."""
         p = Path(target_path).resolve()
         if p.is_file():
-            return await self.ingestion_pipeline.ingest_file(p, collection=collection, metadata=metadata)
+            return await self.ingestion_pipeline.ingest_file(
+                p, collection=collection, metadata=metadata
+            )
         elif p.is_dir():
-            return await self.ingestion_pipeline.ingest_directory(p, collection=collection, metadata=metadata)
+            return await self.ingestion_pipeline.ingest_directory(
+                p, collection=collection, metadata=metadata
+            )
         else:
             raise FileNotFoundError(f"Path '{target_path}' does not exist.")
 
@@ -71,4 +78,6 @@ class RAGEngine:
         top_k: int = 5,
     ) -> list[SearchResult]:
         """Runs hybrid search across indexed chunks in the given collection."""
-        return await self.retriever.search(query=query, collection=collection, top_k=top_k)
+        return await self.retriever.search(
+            query=query, collection=collection, top_k=top_k
+        )

@@ -5,8 +5,8 @@ from claude_code_clone.core.providers.gateway import LiteLLMGateway
 from claude_code_clone.core.providers.models import MODEL_ALIASES, resolve_model_name
 
 __all__ = [
+    "MODEL_ALIASES",
     "BaseLLMProvider",
     "LiteLLMGateway",
-    "MODEL_ALIASES",
     "resolve_model_name",
 ]

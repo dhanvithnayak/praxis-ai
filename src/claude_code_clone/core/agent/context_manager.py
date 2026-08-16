@@ -25,7 +25,9 @@ class ContextManager:
                     total += estimate_tokens(str(tc.arguments)) + 20
         return total
 
-    def prune_and_compact_if_needed(self, messages: list[AgentMessage]) -> list[AgentMessage]:
+    def prune_and_compact_if_needed(
+        self, messages: list[AgentMessage]
+    ) -> list[AgentMessage]:
         """
         If message tokens exceed threshold, compacts older tool outputs and conversational turns
         while preserving the system prompt and the latest turns.
@@ -47,7 +49,11 @@ class ContextManager:
         compacted_older: list[AgentMessage] = []
         for msg in older_msgs:
             if msg.role == "tool" and msg.content and len(msg.content) > 300:
-                shortened = msg.content[:150] + "\n...[truncated past output for context efficiency]...\n" + msg.content[-150:]
+                shortened = (
+                    msg.content[:150]
+                    + "\n...[truncated past output for context efficiency]...\n"
+                    + msg.content[-150:]
+                )
                 compacted_older.append(
                     AgentMessage(
                         role="tool",
@@ -62,7 +68,9 @@ class ContextManager:
         compacted = system_msgs + compacted_older + recent_msgs
         return compacted
 
-    def manual_compact(self, messages: list[AgentMessage], summary_text: str) -> list[AgentMessage]:
+    def manual_compact(
+        self, messages: list[AgentMessage], summary_text: str
+    ) -> list[AgentMessage]:
         """Replaces older history with a concise summary message."""
         system_msgs = [m for m in messages if m.role == "system"]
         keep_recent_count = min(4, len(messages))

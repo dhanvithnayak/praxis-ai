@@ -1,12 +1,16 @@
 """Permission guardrails and safety policy management for tool execution."""
 
-from enum import Enum
+from enum import StrEnum
 
 
-class PermissionMode(str, Enum):
-    STRICT = "strict"                  # Asks confirmation for ALL tools (read, write, bash)
-    ACCEPT_READ_ONLY = "accept_read_only"  # Auto-executes read-only & RAG tools, asks for write & bash
-    AUTONOMOUS = "autonomous"          # Auto-executes all tools except critically dangerous blocklist
+class PermissionMode(StrEnum):
+    STRICT = "strict"  # Asks confirmation for ALL tools (read, write, bash)
+    ACCEPT_READ_ONLY = (
+        "accept_read_only"  # Auto-executes read-only & RAG tools, asks for write & bash
+    )
+    AUTONOMOUS = (
+        "autonomous"  # Auto-executes all tools except critically dangerous blocklist
+    )
 
 
 CRITICAL_DANGEROUS_PATTERNS = [
@@ -45,7 +49,10 @@ class PermissionManager:
                 cmd = str(params.get("command", "")).strip()
                 for pattern in CRITICAL_DANGEROUS_PATTERNS:
                     if pattern in cmd:
-                        return True, f"Command contains potentially catastrophic pattern '{pattern}'"
+                        return (
+                            True,
+                            f"Command contains potentially catastrophic pattern '{pattern}'",
+                        )
             return False, None
 
         # Strict mode requires confirmation on any destructive or state-altering tool

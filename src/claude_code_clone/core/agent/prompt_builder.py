@@ -1,9 +1,9 @@
 """Dynamic system prompt builder and environment context assembler."""
 
-import os
-from pathlib import Path
 import platform
 import subprocess
+from pathlib import Path
+
 from claude_code_clone.core.agent.repo_map import RepoMapGenerator
 from claude_code_clone.core.config.settings import Settings
 
@@ -64,17 +64,21 @@ class PromptBuilder:
         ]
 
         if rag_context:
-            prompt_sections.extend([
-                "",
-                "# Enterprise Context (Pre-loaded RAG knowledge)",
-                rag_context,
-            ])
+            prompt_sections.extend(
+                [
+                    "",
+                    "# Enterprise Context (Pre-loaded RAG knowledge)",
+                    rag_context,
+                ]
+            )
 
         if custom_instructions:
-            prompt_sections.extend([
-                "",
-                "# Custom Project Instructions",
-                custom_instructions,
-            ])
+            prompt_sections.extend(
+                [
+                    "",
+                    "# Custom Project Instructions",
+                    custom_instructions,
+                ]
+            )
 
         return "\n".join(prompt_sections)

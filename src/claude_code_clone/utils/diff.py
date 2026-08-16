@@ -1,7 +1,6 @@
 """Diff computation and fuzzy block replacement utilities."""
 
 import difflib
-from typing import Tuple
 
 
 def compute_unified_diff(
@@ -28,7 +27,7 @@ def apply_block_replacement(
     target_content: str,
     replacement_content: str,
     allow_multiple: bool = False,
-) -> Tuple[str, int]:
+) -> tuple[str, int]:
     """
     Replaces target_content with replacement_content in content.
     Returns (new_content, replacement_count).
@@ -58,7 +57,9 @@ def apply_block_replacement(
             raise ValueError(
                 f"Found {count} occurrences of target content (normalized line endings). Provide a more specific unique block."
             )
-        new_content = normalized_content.replace(normalized_target, normalized_replacement)
+        new_content = normalized_content.replace(
+            normalized_target, normalized_replacement
+        )
         return new_content, count
 
     # 3. Strip trailing whitespace per line match

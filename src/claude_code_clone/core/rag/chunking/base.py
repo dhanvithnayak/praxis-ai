@@ -1,6 +1,7 @@
 """Base Chunker interface."""
 
 from abc import ABC, abstractmethod
+
 from claude_code_clone.core.rag.types import Chunk, Document
 
 

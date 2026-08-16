@@ -2,6 +2,7 @@
 
 import os
 from pathlib import Path
+
 from claude_code_clone.core.tools.file_system import IGNORE_PATTERNS
 
 
@@ -14,7 +15,11 @@ class RepoMapGenerator:
         file_count = 0
 
         for root, dirs, files in os.walk(workspace_dir):
-            dirs[:] = [d for d in sorted(dirs) if d not in IGNORE_PATTERNS and not d.startswith(".")]
+            dirs[:] = [
+                d
+                for d in sorted(dirs)
+                if d not in IGNORE_PATTERNS and not d.startswith(".")
+            ]
             rel_dir = Path(root).relative_to(workspace_dir)
             prefix = "" if str(rel_dir) == "." else f"{rel_dir}/"
 

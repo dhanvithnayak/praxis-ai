@@ -1,16 +1,19 @@
 """Bash and shell execution tool."""
 
 import asyncio
-from pathlib import Path
 from typing import Any
+
 from pydantic import BaseModel, Field
+
 from claude_code_clone.core.agent.types import ToolResult
 from claude_code_clone.core.tools.base import BaseTool, ExecutionContext
 
 
 class BashArgs(BaseModel):
     command: str = Field(description="The shell command line string to execute in bash")
-    timeout_seconds: int = Field(default=60, description="Maximum execution timeout in seconds")
+    timeout_seconds: int = Field(
+        default=60, description="Maximum execution timeout in seconds"
+    )
 
 
 class BashExecutorTool(BaseTool):
@@ -19,7 +22,9 @@ class BashExecutorTool(BaseTool):
     is_destructive = True
     args_schema = BashArgs
 
-    async def execute(self, params: dict[str, Any], context: ExecutionContext) -> ToolResult:
+    async def execute(
+        self, params: dict[str, Any], context: ExecutionContext
+    ) -> ToolResult:
         args = BashArgs(**params)
         cmd_str = args.command.strip()
         cwd_dir = context.workspace_dir
@@ -45,7 +50,7 @@ class BashExecutorTool(BaseTool):
                     process.communicate(),
                     timeout=float(args.timeout_seconds),
                 )
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 try:
                     process.kill()
                 except ProcessLookupError:
@@ -68,7 +73,9 @@ class BashExecutorTool(BaseTool):
             if stderr:
                 output_lines.append(f"[stderr]\n{stderr}")
             if not stdout and not stderr:
-                output_lines.append(f"(Command exited with code {exit_code}, no output produced)")
+                output_lines.append(
+                    f"(Command exited with code {exit_code}, no output produced)"
+                )
 
             full_output = "\n\n".join(output_lines)
             is_error = exit_code != 0

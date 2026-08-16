@@ -2,6 +2,7 @@
 
 import re
 import uuid
+
 from claude_code_clone.core.rag.chunking.base import BaseChunker
 from claude_code_clone.core.rag.types import Chunk, Document
 
@@ -55,7 +56,11 @@ class MarkdownChunker(BaseChunker):
                         source=document.source,
                         start_line=s_line,
                         end_line=end_line,
-                        metadata={**document.metadata, "header": header, "type": "markdown"},
+                        metadata={
+                            **document.metadata,
+                            "header": header,
+                            "type": "markdown",
+                        },
                     )
                 )
             else:
@@ -76,7 +81,11 @@ class MarkdownChunker(BaseChunker):
                                 source=document.source,
                                 start_line=sub_start,
                                 end_line=s_line,
-                                metadata={**document.metadata, "header": header, "type": "markdown"},
+                                metadata={
+                                    **document.metadata,
+                                    "header": header,
+                                    "type": "markdown",
+                                },
                             )
                         )
                         accumulated = [para]
@@ -95,7 +104,11 @@ class MarkdownChunker(BaseChunker):
                             source=document.source,
                             start_line=sub_start,
                             end_line=end_line,
-                            metadata={**document.metadata, "header": header, "type": "markdown"},
+                            metadata={
+                                **document.metadata,
+                                "header": header,
+                                "type": "markdown",
+                            },
                         )
                     )
 

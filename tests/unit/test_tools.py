@@ -1,13 +1,14 @@
 """Unit tests for file system, search, bash tools, and registry."""
 
 from pathlib import Path
+
 import pytest
+
 from claude_code_clone.core.agent.types import ToolCall
 from claude_code_clone.core.tools.base import ExecutionContext
 from claude_code_clone.core.tools.bash import BashExecutorTool
 from claude_code_clone.core.tools.file_system import (
     EditFileTool,
-    ListDirTool,
     ReadFileTool,
     WriteFileTool,
 )
@@ -40,7 +41,9 @@ async def test_file_write_and_read(workspace: ExecutionContext):
     assert "Line 3" in read_res.output
 
     # 3. Read slice
-    slice_res = await read_tool.execute({"path": "subdir/test.txt", "start_line": 2, "end_line": 2}, workspace)
+    slice_res = await read_tool.execute(
+        {"path": "subdir/test.txt", "start_line": 2, "end_line": 2}, workspace
+    )
     assert not slice_res.is_error
     assert "Line 2" in slice_res.output
     assert "Line 1" not in slice_res.output
@@ -76,8 +79,12 @@ async def test_edit_file_tool(workspace: ExecutionContext):
 @pytest.mark.asyncio
 async def test_grep_and_glob(workspace: ExecutionContext):
     write_tool = WriteFileTool()
-    await write_tool.execute({"path": "src/main.py", "content": "print('hello universe')\n"}, workspace)
-    await write_tool.execute({"path": "src/util.py", "content": "SECRET_KEY = 'xyz'\n"}, workspace)
+    await write_tool.execute(
+        {"path": "src/main.py", "content": "print('hello universe')\n"}, workspace
+    )
+    await write_tool.execute(
+        {"path": "src/util.py", "content": "SECRET_KEY = 'xyz'\n"}, workspace
+    )
 
     grep_tool = GrepSearchTool()
     grep_res = await grep_tool.execute({"query": "SECRET_KEY"}, workspace)

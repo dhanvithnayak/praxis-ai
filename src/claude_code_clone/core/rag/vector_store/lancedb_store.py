@@ -3,8 +3,9 @@
 import asyncio
 import json
 from pathlib import Path
-from typing import Any
+
 import lancedb
+
 from claude_code_clone.core.config.constants import LOCAL_RAG_DIR
 from claude_code_clone.core.rag.types import Chunk, SearchResult
 from claude_code_clone.core.rag.vector_store.base import BaseVectorStore

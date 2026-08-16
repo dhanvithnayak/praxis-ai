@@ -1,7 +1,9 @@
 """ReAct (Reasoning + Acting) execution loop controller."""
 
+from collections.abc import Callable, Coroutine
 from pathlib import Path
-from typing import Any, AsyncIterator, Callable, Coroutine
+from typing import Any
+
 from claude_code_clone.core.agent.context_manager import ContextManager
 from claude_code_clone.core.agent.prompt_builder import PromptBuilder
 from claude_code_clone.core.agent.types import (
@@ -21,9 +23,12 @@ from claude_code_clone.core.tools.registry import ToolRegistry
 
 class ReActEvents:
     """Event hooks for UI rendering during the ReAct loop."""
+
     on_token: Callable[[str], None] | None = None
     on_tool_call_start: Callable[[ToolCall], None] | None = None
-    on_tool_call_confirm: Callable[[str, dict[str, Any]], Coroutine[Any, Any, bool]] | None = None
+    on_tool_call_confirm: (
+        Callable[[str, dict[str, Any]], Coroutine[Any, Any, bool]] | None
+    ) = None
     on_tool_call_result: Callable[[ToolResult], None] | None = None
     on_turn_complete: Callable[[AgentResponse], None] | None = None
 
@@ -80,7 +85,9 @@ class ReActController:
             iteration += 1
 
             # Prune and compact context if getting close to token limit
-            self.history = self.context_manager.prune_and_compact_if_needed(self.history)
+            self.history = self.context_manager.prune_and_compact_if_needed(
+                self.history
+            )
 
             # Prepare schemas
             tool_schemas = self.tools.get_schemas() if self.tools else None
@@ -132,7 +139,9 @@ class ReActController:
                 approved = True
                 if needs_confirm and events and events.on_tool_call_confirm:
                     prompt_reason = reason or f"Run tool '{tool_call.name}'"
-                    approved = await events.on_tool_call_confirm(prompt_reason, tool_call.arguments)
+                    approved = await events.on_tool_call_confirm(
+                        prompt_reason, tool_call.arguments
+                    )
 
                 if not approved:
                     tool_result = ToolResult(

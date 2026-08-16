@@ -1,14 +1,14 @@
 """Interactive Terminal REPL powered by prompt_toolkit and the ReAct engine."""
 
 import asyncio
-from pathlib import Path
+
 from prompt_toolkit import PromptSession
 from prompt_toolkit.completion import WordCompleter
 from prompt_toolkit.history import FileHistory
+
 from claude_code_clone.cli.ui.prompt import ask_user_confirmation
 from claude_code_clone.cli.ui.renderer import TerminalRenderer, console
 from claude_code_clone.core.agent.react_loop import ReActController, ReActEvents
-from claude_code_clone.core.agent.types import ToolCall, ToolResult
 from claude_code_clone.core.config.constants import GLOBAL_CONFIG_DIR
 from claude_code_clone.core.config.permissions import PermissionMode
 from claude_code_clone.core.config.settings import Settings
@@ -93,45 +93,67 @@ class InteractiveREPL:
 
         elif cmd == "/history":
             count = len(self.controller.history)
-            self.renderer.render_info(f"Active conversation history contains {count} message(s).")
+            self.renderer.render_info(
+                f"Active conversation history contains {count} message(s)."
+            )
             return True
 
         elif cmd == "/model":
             if not args:
-                self.renderer.render_info(f"Current active model: [bold green]{self.controller.settings.model}[/bold green]")
-                self.renderer.render_info(f"Available shortcuts: {', '.join(list(MODEL_ALIASES.keys())[:8])}...")
+                self.renderer.render_info(
+                    f"Current active model: [bold green]{self.controller.settings.model}[/bold green]"
+                )
+                self.renderer.render_info(
+                    f"Available shortcuts: {', '.join(list(MODEL_ALIASES.keys())[:8])}..."
+                )
             else:
                 new_model = resolve_model_name(args[0])
                 self.controller.settings.model = new_model
-                self.renderer.render_success(f"Switched active model to: [bold green]{new_model}[/bold green]")
+                self.renderer.render_success(
+                    f"Switched active model to: [bold green]{new_model}[/bold green]"
+                )
             return True
 
         elif cmd == "/permission":
             if not args:
-                self.renderer.render_info(f"Current permission mode: [bold yellow]{self.controller.permission_manager.mode.value}[/bold yellow]")
+                self.renderer.render_info(
+                    f"Current permission mode: [bold yellow]{self.controller.permission_manager.mode.value}[/bold yellow]"
+                )
             else:
                 try:
                     new_mode = PermissionMode(args[0].lower())
                     self.controller.permission_manager.mode = new_mode
                     self.controller.settings.permission_mode = new_mode.value
-                    self.renderer.render_success(f"Permission mode set to: [bold yellow]{new_mode.value}[/bold yellow]")
+                    self.renderer.render_success(
+                        f"Permission mode set to: [bold yellow]{new_mode.value}[/bold yellow]"
+                    )
                 except ValueError:
-                    self.renderer.render_error("Valid modes: strict, accept_read_only, autonomous")
+                    self.renderer.render_error(
+                        "Valid modes: strict, accept_read_only, autonomous"
+                    )
             return True
 
         elif cmd == "/rag":
             if not args:
-                status = "enabled" if self.controller.settings.rag_enabled else "disabled"
-                self.renderer.render_info(f"Enterprise RAG is currently [yellow]{status}[/yellow].")
+                status = (
+                    "enabled" if self.controller.settings.rag_enabled else "disabled"
+                )
+                self.renderer.render_info(
+                    f"Enterprise RAG is currently [yellow]{status}[/yellow]."
+                )
             else:
                 val = args[0].lower() in ("on", "true", "1", "enable", "yes")
                 self.controller.settings.rag_enabled = val
-                self.renderer.render_success(f"Enterprise RAG {'enabled' if val else 'disabled'}.")
+                self.renderer.render_success(
+                    f"Enterprise RAG {'enabled' if val else 'disabled'}."
+                )
             return True
 
         elif cmd == "/compact":
-            self.controller.history = self.controller.context_manager.prune_and_compact_if_needed(
-                self.controller.history
+            self.controller.history = (
+                self.controller.context_manager.prune_and_compact_if_needed(
+                    self.controller.history
+                )
             )
             self.renderer.render_success("Conversation context compacted.")
             return True
@@ -149,7 +171,9 @@ class InteractiveREPL:
         while self.running:
             try:
                 # Prompt user input asynchronously
-                user_input = await self.prompt_session.prompt_async("\n╭─ [bold cyan]You[/bold cyan]\n╰─> ")
+                user_input = await self.prompt_session.prompt_async(
+                    "\n╭─ [bold cyan]You[/bold cyan]\n╰─> "
+                )
                 user_input = user_input.strip()
 
                 if not user_input:

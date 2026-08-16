@@ -1,7 +1,9 @@
 """Local CPU ONNX embeddings using FastEmbed (zero external API keys needed)."""
 
 import asyncio
+
 from fastembed import TextEmbedding
+
 from claude_code_clone.core.config.constants import DEFAULT_EMBEDDING_MODEL
 from claude_code_clone.core.rag.embeddings.base import BaseEmbeddingProvider
 
@@ -28,7 +30,9 @@ class FastEmbedProvider(BaseEmbeddingProvider):
             None,
             lambda: list(self._get_model().embed(texts)),
         )
-        return [emb.tolist() if hasattr(emb, "tolist") else list(emb) for emb in embeddings]
+        return [
+            emb.tolist() if hasattr(emb, "tolist") else list(emb) for emb in embeddings
+        ]
 
     async def embed_query(self, query: str) -> list[float]:
         results = await self.embed_documents([query])

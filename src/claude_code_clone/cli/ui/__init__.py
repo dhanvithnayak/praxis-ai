@@ -6,7 +6,7 @@ from claude_code_clone.cli.ui.spinner import status_spinner
 
 __all__ = [
     "TerminalRenderer",
-    "console",
     "ask_user_confirmation",
+    "console",
     "status_spinner",
 ]

@@ -2,7 +2,9 @@
 
 import asyncio
 from typing import Any, Literal
+
 from pydantic import BaseModel, Field
+
 from claude_code_clone.core.agent.types import ToolResult
 from claude_code_clone.core.tools.base import BaseTool, ExecutionContext
 
@@ -11,7 +13,10 @@ class GitArgs(BaseModel):
     subcommand: Literal["status", "diff", "log", "branch"] = Field(
         description="The git subcommand to run ('status', 'diff', 'log', 'branch')"
     )
-    args: str | None = Field(default=None, description="Optional additional arguments for git (e.g. '--staged', '-n 5')")
+    args: str | None = Field(
+        default=None,
+        description="Optional additional arguments for git (e.g. '--staged', '-n 5')",
+    )
 
 
 class GitTool(BaseTool):
@@ -20,7 +25,9 @@ class GitTool(BaseTool):
     is_destructive = False
     args_schema = GitArgs
 
-    async def execute(self, params: dict[str, Any], context: ExecutionContext) -> ToolResult:
+    async def execute(
+        self, params: dict[str, Any], context: ExecutionContext
+    ) -> ToolResult:
         try:
             args = GitArgs(**params)
             cmd = f"git {args.subcommand}"

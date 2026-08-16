@@ -1,7 +1,9 @@
 """RAG Knowledge Base Tool for autonomous agent querying."""
 
 from typing import Any
+
 from pydantic import BaseModel, Field
+
 from claude_code_clone.core.agent.types import ToolResult
 from claude_code_clone.core.config.constants import DEFAULT_RAG_COLLECTION
 from claude_code_clone.core.rag.engine import RAGEngine
@@ -9,7 +11,9 @@ from claude_code_clone.core.tools.base import BaseTool, ExecutionContext
 
 
 class QueryKnowledgeBaseArgs(BaseModel):
-    query: str = Field(description="The question or search query to look up in the enterprise knowledge base")
+    query: str = Field(
+        description="The question or search query to look up in the enterprise knowledge base"
+    )
     collection: str = Field(
         default=DEFAULT_RAG_COLLECTION,
         description="The knowledge collection to search within (e.g. 'enterprise-docs', 'infra-playbooks', 'architecture')",
@@ -34,11 +38,15 @@ class QueryKnowledgeBaseTool(BaseTool):
             self._engine = RAGEngine()
         return self._engine
 
-    async def execute(self, params: dict[str, Any], context: ExecutionContext) -> ToolResult:
+    async def execute(
+        self, params: dict[str, Any], context: ExecutionContext
+    ) -> ToolResult:
         try:
             args = QueryKnowledgeBaseArgs(**params)
             engine = self._get_engine()
-            results = await engine.search(query=args.query, collection=args.collection, top_k=args.top_k)
+            results = await engine.search(
+                query=args.query, collection=args.collection, top_k=args.top_k
+            )
 
             if not results:
                 return ToolResult(

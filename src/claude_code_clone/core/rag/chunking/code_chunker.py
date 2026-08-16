@@ -1,6 +1,7 @@
 """Code and structured configuration chunker."""
 
 import uuid
+
 from claude_code_clone.core.rag.chunking.base import BaseChunker
 from claude_code_clone.core.rag.types import Chunk, Document
 

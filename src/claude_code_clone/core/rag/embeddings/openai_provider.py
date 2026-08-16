@@ -1,13 +1,16 @@
 """OpenAI Cloud Embeddings Provider."""
 
 import litellm
+
 from claude_code_clone.core.rag.embeddings.base import BaseEmbeddingProvider
 
 
 class OpenAIEmbeddingProvider(BaseEmbeddingProvider):
     """Cloud embedding provider using OpenAI text-embedding-3-small or compatible endpoints."""
 
-    def __init__(self, model_name: str = "text-embedding-3-small", api_key: str | None = None):
+    def __init__(
+        self, model_name: str = "text-embedding-3-small", api_key: str | None = None
+    ):
         self.model_name = model_name
         self.api_key = api_key
         self._dimension = 1536

@@ -1,7 +1,9 @@
 """Base LLM Provider interface definition."""
 
 from abc import ABC, abstractmethod
-from typing import Any, AsyncIterator, Callable
+from collections.abc import Callable
+from typing import Any
+
 from claude_code_clone.core.agent.types import AgentMessage, AgentResponse, StreamChunk
 
 
@@ -22,6 +24,8 @@ class BaseLLMProvider(ABC):
         ...
 
     @abstractmethod
-    async def count_tokens(self, text_or_messages: str | list[AgentMessage], model: str | None = None) -> int:
+    async def count_tokens(
+        self, text_or_messages: str | list[AgentMessage], model: str | None = None
+    ) -> int:
         """Calculates or estimates the token count for given text or messages."""
         ...

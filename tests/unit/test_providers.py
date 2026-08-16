@@ -1,6 +1,7 @@
 """Unit tests for LiteLLM Gateway and model resolution."""
 
 import pytest
+
 from claude_code_clone.core.agent.types import AgentMessage, ToolCall
 from claude_code_clone.core.config.settings import Settings
 from claude_code_clone.core.providers.gateway import LiteLLMGateway
@@ -8,11 +9,16 @@ from claude_code_clone.core.providers.models import resolve_model_name
 
 
 def test_model_alias_resolution():
-    assert resolve_model_name("claude-3-7-sonnet") == "anthropic/claude-3-7-sonnet-20250219"
+    assert (
+        resolve_model_name("claude-3-7-sonnet")
+        == "anthropic/claude-3-7-sonnet-20250219"
+    )
     assert resolve_model_name("gpt-4o") == "openai/gpt-4o"
     assert resolve_model_name("gemini-flash") == "gemini/gemini-2.5-flash"
     assert resolve_model_name("deepseek-r1") == "ollama/deepseek-r1:14b"
-    assert resolve_model_name("custom/my-fine-tuned-model") == "custom/my-fine-tuned-model"
+    assert (
+        resolve_model_name("custom/my-fine-tuned-model") == "custom/my-fine-tuned-model"
+    )
 
 
 def test_gateway_message_formatting():

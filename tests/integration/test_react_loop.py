@@ -1,8 +1,11 @@
 """Integration tests for the ReAct execution loop using a mock LLM provider."""
 
+from collections.abc import Callable
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any
+
 import pytest
+
 from claude_code_clone.core.agent.react_loop import ReActController
 from claude_code_clone.core.agent.types import (
     AgentMessage,
@@ -38,7 +41,10 @@ class MockLLMProvider(BaseLLMProvider):
             tc = ToolCall(
                 id="mock_call_1",
                 name="write_file",
-                arguments={"path": "react_test.txt", "content": "Autonomous ReAct Output"},
+                arguments={
+                    "path": "react_test.txt",
+                    "content": "Autonomous ReAct Output",
+                },
             )
             return AgentResponse(
                 content="I will create the test file.",
@@ -57,7 +63,9 @@ class MockLLMProvider(BaseLLMProvider):
         else:
             return AgentResponse(content="Done.", tool_calls=[])
 
-    async def count_tokens(self, text_or_messages: str | list[AgentMessage], model: str | None = None) -> int:
+    async def count_tokens(
+        self, text_or_messages: str | list[AgentMessage], model: str | None = None
+    ) -> int:
         return 50
 
 

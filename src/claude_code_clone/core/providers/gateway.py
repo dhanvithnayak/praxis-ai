@@ -2,9 +2,12 @@
 
 import json
 import logging
-from typing import Any, Callable
+from collections.abc import Callable
+from typing import Any
+
 import litellm
 from litellm import acompletion, token_counter
+
 from claude_code_clone.core.agent.types import (
     AgentMessage,
     AgentResponse,
@@ -43,7 +46,9 @@ class LiteLLMGateway(BaseLLMProvider):
         if self.settings.openai_base_url:
             litellm.api_base = self.settings.openai_base_url
 
-    def _format_messages_for_provider(self, messages: list[AgentMessage]) -> list[dict[str, Any]]:
+    def _format_messages_for_provider(
+        self, messages: list[AgentMessage]
+    ) -> list[dict[str, Any]]:
         """Converts AgentMessage objects to standard provider message dictionaries."""
         formatted: list[dict[str, Any]] = []
         for msg in messages:
@@ -57,7 +62,9 @@ class LiteLLMGateway(BaseLLMProvider):
                         "type": "function",
                         "function": {
                             "name": tc.name,
-                            "arguments": json.dumps(tc.arguments) if isinstance(tc.arguments, dict) else str(tc.arguments),
+                            "arguments": json.dumps(tc.arguments)
+                            if isinstance(tc.arguments, dict)
+                            else str(tc.arguments),
                         },
                     }
                     for tc in msg.tool_calls
@@ -149,7 +156,9 @@ class LiteLLMGateway(BaseLLMProvider):
 
         except Exception as e:
             # Re-raise with informative context
-            raise RuntimeError(f"LLM Provider error with model '{active_model}': {e}") from e
+            raise RuntimeError(
+                f"LLM Provider error with model '{active_model}': {e}"
+            ) from e
 
         # Finalize parsed tool calls
         final_tool_calls: list[ToolCall] = []
@@ -165,6 +174,7 @@ class LiteLLMGateway(BaseLLMProvider):
                     # Basic fallback for truncated or loosely formatted JSON arguments
                     try:
                         import ast
+
                         parsed_args = ast.literal_eval(raw_args)
                     except Exception:
                         parsed_args = {"raw_arguments": raw_args}
@@ -189,7 +199,9 @@ class LiteLLMGateway(BaseLLMProvider):
             total_tokens=prompt_tokens + completion_tokens,
         )
 
-    async def count_tokens(self, text_or_messages: str | list[AgentMessage], model: str | None = None) -> int:
+    async def count_tokens(
+        self, text_or_messages: str | list[AgentMessage], model: str | None = None
+    ) -> int:
         """Estimates token count using LiteLLM token counter."""
         active_model = resolve_model_name(model or self.settings.model)
         try:

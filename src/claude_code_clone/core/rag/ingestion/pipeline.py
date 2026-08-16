@@ -3,11 +3,12 @@
 import os
 from pathlib import Path
 from typing import Any
+
 from claude_code_clone.core.rag.chunking.base import BaseChunker
 from claude_code_clone.core.rag.chunking.code_chunker import CodeChunker
 from claude_code_clone.core.rag.chunking.markdown_chunker import MarkdownChunker
 from claude_code_clone.core.rag.embeddings.base import BaseEmbeddingProvider
-from claude_code_clone.core.rag.types import Chunk, Document
+from claude_code_clone.core.rag.types import Document
 from claude_code_clone.core.rag.vector_store.base import BaseVectorStore
 from claude_code_clone.core.tools.file_system import IGNORE_PATTERNS
 
@@ -49,7 +50,8 @@ class IngestionPipeline:
         doc = Document(
             content=content,
             source=str(file_path),
-            metadata=metadata or {"filename": file_path.name, "suffix": file_path.suffix},
+            metadata=metadata
+            or {"filename": file_path.name, "suffix": file_path.suffix},
         )
 
         chunker = self._select_chunker(file_path)
@@ -74,7 +76,9 @@ class IngestionPipeline:
         """Walks a directory and ingests all valid code/doc files."""
         total_chunks = 0
         for root, dirs, files in os.walk(dir_path):
-            dirs[:] = [d for d in dirs if d not in IGNORE_PATTERNS and not d.startswith(".")]
+            dirs[:] = [
+                d for d in dirs if d not in IGNORE_PATTERNS and not d.startswith(".")
+            ]
             for f in files:
                 if f in IGNORE_PATTERNS or f.startswith("."):
                     continue

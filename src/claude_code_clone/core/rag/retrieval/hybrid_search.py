@@ -1,7 +1,9 @@
 """Hybrid Search combining Dense Vector Search and BM25 Sparse Keyword Matching."""
 
 from collections import defaultdict
+
 from rank_bm25 import BM25Okapi
+
 from claude_code_clone.core.rag.embeddings.base import BaseEmbeddingProvider
 from claude_code_clone.core.rag.types import SearchResult
 from claude_code_clone.core.rag.vector_store.base import BaseVectorStore
@@ -49,7 +51,9 @@ class HybridSearch:
             scores = bm25.get_scores(tokenized_query)
 
             # Rank by BM25 score
-            ranked_indices = sorted(range(len(scores)), key=lambda i: scores[i], reverse=True)
+            ranked_indices = sorted(
+                range(len(scores)), key=lambda i: scores[i], reverse=True
+            )
             for idx in ranked_indices[: top_k * 2]:
                 if scores[idx] > 0:
                     chunk = all_chunks[idx]
@@ -79,7 +83,9 @@ class HybridSearch:
                 result_map[res.id] = res
 
         # Sort by fused score
-        sorted_ids = sorted(rrf_scores.keys(), key=lambda x: rrf_scores[x], reverse=True)
+        sorted_ids = sorted(
+            rrf_scores.keys(), key=lambda x: rrf_scores[x], reverse=True
+        )
         final_results: list[SearchResult] = []
         for chunk_id in sorted_ids[:top_k]:
             res = result_map[chunk_id]
