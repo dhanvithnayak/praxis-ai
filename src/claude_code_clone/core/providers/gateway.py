@@ -101,6 +101,12 @@ class LiteLLMGateway(BaseLLMProvider):
             kwargs["tools"] = tools
             kwargs["tool_choice"] = "auto"
 
+        if (
+            active_model.startswith("ollama/")
+            or active_model.startswith("ollama_chat/")
+        ) and self.settings.ollama_base_url:
+            kwargs["api_base"] = self.settings.ollama_base_url
+
         # Accumulators
         full_content_chunks: list[str] = []
         tool_call_accumulators: dict[int, dict[str, Any]] = {}
