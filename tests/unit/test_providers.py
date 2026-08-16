@@ -59,3 +59,42 @@ async def test_token_counter():
     gateway = LiteLLMGateway()
     tokens = await gateway.count_tokens("Hello, world! This is a test.")
     assert tokens > 0
+
+
+def test_extract_fallback_tool_calls():
+    # 1. Plain JSON tool call (what smaller Ollama models often output)
+    raw_json = '{"name": "read_file", "arguments": {"path": "README.md"}}'
+    tools, _ = LiteLLMGateway._extract_fallback_tool_calls(
+        raw_json, valid_tool_names={"read_file", "write_file"}
+    )
+    assert len(tools) == 1
+    assert tools[0].name == "read_file"
+    assert tools[0].arguments == {"path": "README.md"}
+
+    # 2. Markdown fenced JSON tool call
+    md_json = """I will inspect the README file now.
+```json
+{
+  "name": "read_file",
+  "arguments": {
+    "path": "README.md"
+  }
+}
+```"""
+    tools, text = LiteLLMGateway._extract_fallback_tool_calls(
+        md_json, valid_tool_names={"read_file"}
+    )
+    assert len(tools) == 1
+    assert tools[0].name == "read_file"
+    assert tools[0].arguments == {"path": "README.md"}
+    assert "I will inspect the README file now." in text
+
+    # 3. XML style tool call
+    xml_text = '<tool_call>{"name": "read_file", "arguments": {"path": "src/main.py"}}</tool_call>'
+    tools, _ = LiteLLMGateway._extract_fallback_tool_calls(
+        xml_text, valid_tool_names={"read_file"}
+    )
+    assert len(tools) == 1
+    assert tools[0].name == "read_file"
+    assert tools[0].arguments == {"path": "src/main.py"}
+
