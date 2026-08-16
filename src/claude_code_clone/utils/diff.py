@@ -85,11 +85,27 @@ def apply_block_replacement(
                 new_lines[adjusted_idx : adjusted_idx + target_len] = rep_lines
                 offset += len(rep_lines) - target_len
             return "\n".join(new_lines), len(matches)
-        elif len(matches) > 1 and not allow_multiple:
-            raise ValueError(
-                f"Found {len(matches)} whitespace-tolerant occurrences of target content. Provide a more specific unique block."
+    # 4. Strip line numbers if the model copied line numbers from read_file (e.g. "   1 | ...")
+    import re
+
+    line_num_pattern = re.compile(r"^\s*\d+[\s:|]+\s?")
+    cleaned_target_lines = [line_num_pattern.sub("", l) for l in target_lines]
+    cleaned_target = "\n".join(cleaned_target_lines)
+    cleaned_rep_lines = [
+        line_num_pattern.sub("", l) for l in normalized_replacement.splitlines()
+    ]
+    cleaned_rep = "\n".join(cleaned_rep_lines)
+    if cleaned_target and cleaned_target != target_content:
+        try:
+            return apply_block_replacement(
+                content,
+                cleaned_target,
+                cleaned_rep,
+                allow_multiple=allow_multiple,
             )
+        except Exception:
+            pass
 
     raise ValueError(
-        "Target content was not found in the file. Ensure the target block matches the exact existing code."
+        "Target content was not found in the file. Call read_file first to check the exact lines of code, then retry edit_file with the exact target block."
     )

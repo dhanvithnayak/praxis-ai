@@ -121,6 +121,87 @@ class LiteLLMGateway(BaseLLMProvider):
         prompt_tokens = 0
         completion_tokens = 0
 
+        # Stream filter to suppress raw tool call streaming
+        class _StreamFilter:
+            def __init__(self, callback: Callable[[StreamChunk], None] | None):
+                self.callback = callback
+                self.normal_buffer: list[str] = []
+                self.tool_buffer: list[str] = []
+                self.in_potential_tool = False
+
+            def feed(self, delta: str | None, fr: str | None) -> None:
+                if not self.callback or not delta:
+                    return
+
+                if self.in_potential_tool:
+                    self.tool_buffer.append(delta)
+                    return
+
+                self.normal_buffer.append(delta)
+                current = "".join(self.normal_buffer)
+
+                triggers = (
+                    "```json",
+                    "```",
+                    "<tool_call>",
+                    "<tool",
+                    '{"name":',
+                    '{"tool":',
+                    '{"action":',
+                    '{"function":',
+                )
+                for trigger in triggers:
+                    if trigger in current:
+                        idx = current.index(trigger)
+                        pre = current[:idx]
+                        tool_part = current[idx:]
+                        if pre:
+                            self.callback(
+                                StreamChunk(delta_content=pre, finish_reason=None)
+                            )
+                        self.normal_buffer.clear()
+                        self.tool_buffer = [tool_part]
+                        self.in_potential_tool = True
+                        return
+
+                if len(current) > 30 and not any(
+                    trigger.startswith(current[-15:]) for trigger in triggers
+                ):
+                    self.callback(
+                        StreamChunk(delta_content=current, finish_reason=None)
+                    )
+                    self.normal_buffer.clear()
+
+            def finalize(
+                self,
+                had_tool_calls: bool,
+                final_text: str = "",
+                finish_reason: str | None = None,
+            ) -> None:
+                if not self.callback:
+                    return
+                if self.normal_buffer:
+                    self.callback(
+                        StreamChunk(
+                            delta_content="".join(self.normal_buffer),
+                            finish_reason=finish_reason if not had_tool_calls else None,
+                        )
+                    )
+                    self.normal_buffer.clear()
+
+                if self.tool_buffer:
+                    if not had_tool_calls:
+                        to_flush = final_text if final_text else "".join(self.tool_buffer)
+                        self.callback(
+                            StreamChunk(
+                                delta_content=to_flush,
+                                finish_reason=finish_reason,
+                            )
+                        )
+                    self.tool_buffer.clear()
+
+        stream_filter = _StreamFilter(on_chunk)
+
         try:
             response_stream = await acompletion(**kwargs)
             async for chunk in response_stream:
@@ -138,6 +219,7 @@ class LiteLLMGateway(BaseLLMProvider):
 
                 if delta_text:
                     full_content_chunks.append(delta_text)
+                    stream_filter.feed(delta_text, finish_reason)
 
                 if tool_calls_delta:
                     for tc_chunk in tool_calls_delta:
@@ -158,14 +240,6 @@ class LiteLLMGateway(BaseLLMProvider):
                                 tool_call_accumulators[idx]["name"] += fn.name
                             if getattr(fn, "arguments", None):
                                 tool_call_accumulators[idx]["arguments"] += fn.arguments
-
-                # Callback for real-time UI streaming
-                if on_chunk:
-                    stream_chunk = StreamChunk(
-                        delta_content=delta_text,
-                        finish_reason=finish_reason,
-                    )
-                    on_chunk(stream_chunk)
 
         except Exception as e:
             # Re-raise with informative context
@@ -220,6 +294,16 @@ class LiteLLMGateway(BaseLLMProvider):
                 full_content = cleaned_content
                 if not finish_reason or finish_reason == "stop":
                     finish_reason = "tool_calls"
+            else:
+                # Unwrap conversational JSON containers (e.g. {"response": "..."})
+                full_content = self._unwrap_json_response(full_content)
+
+        # Finalize stream callback (suppress tool call JSON or flush clean text)
+        stream_filter.finalize(
+            had_tool_calls=bool(final_tool_calls),
+            final_text=full_content,
+            finish_reason=finish_reason,
+        )
 
         return AgentResponse(
             content=full_content,
@@ -229,6 +313,42 @@ class LiteLLMGateway(BaseLLMProvider):
             completion_tokens=completion_tokens,
             total_tokens=prompt_tokens + completion_tokens,
         )
+
+    @staticmethod
+    def _unwrap_json_response(content: str) -> str:
+        """
+        Unwraps conversational text if the model returned its final answer inside a
+        JSON container like `{"response": "..."}`, `{"answer": "..."}`, `{"message": "..."}`.
+        """
+        trimmed = content.strip()
+        if not trimmed:
+            return content
+
+        code_block = re.match(r"^```(?:json)?\s*([\s\S]*?)\s*```$", trimmed)
+        raw = code_block.group(1).strip() if code_block else trimmed
+
+        if raw.startswith("{") and raw.endswith("}"):
+            try:
+                data = json.loads(raw)
+                if isinstance(data, dict):
+                    for key in (
+                        "response",
+                        "answer",
+                        "message",
+                        "content",
+                        "text",
+                        "output",
+                        "final_answer",
+                    ):
+                        if (
+                            key in data
+                            and isinstance(data[key], str)
+                            and data[key].strip()
+                        ):
+                            return data[key].strip()
+            except Exception:
+                pass
+        return content
 
     @staticmethod
     def _extract_fallback_tool_calls(

@@ -98,3 +98,22 @@ def test_extract_fallback_tool_calls():
     assert tools[0].name == "read_file"
     assert tools[0].arguments == {"path": "src/main.py"}
 
+
+def test_unwrap_json_response():
+    # Markdown wrapped JSON response
+    sample = """```json
+{
+  "response": "The README describes the Claude Code Clone CLI tool."
+}
+```"""
+    unwrapped = LiteLLMGateway._unwrap_json_response(sample)
+    assert unwrapped == "The README describes the Claude Code Clone CLI tool."
+
+    # Direct JSON response
+    sample_direct = '{"answer": "Here is the summary."}'
+    assert LiteLLMGateway._unwrap_json_response(sample_direct) == "Here is the summary."
+
+    # Normal text left untouched
+    normal = "Just regular markdown explanation."
+    assert LiteLLMGateway._unwrap_json_response(normal) == normal
+

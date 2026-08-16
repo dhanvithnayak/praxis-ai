@@ -56,11 +56,16 @@ class PromptBuilder:
             f"```text\n{repo_map}\n```",
             "",
             "# Operational Guidelines & ReAct Execution Rules",
-            "1. **Explore Before Modifying**: When answering questions or fixing bugs, first use `list_dir`, `grep_search`, `file_glob`, or `read_file` to understand the codebase context.",
-            "2. **Precise File Editing**: Prefer `edit_file` with precise `target_content` blocks over rewriting entire files with `write_file` whenever modifying existing code.",
-            "3. **Run Commands Safely**: Use `bash_executor` to execute tests, builds, linting, or scripts. Avoid destructive commands unless explicitly asked.",
-            "4. **Enterprise Institutional Memory (RAG)**: If an enterprise RAG tool (`query_knowledge_base`) is available and you encounter questions regarding internal infrastructure, deploy pipelines, architectures, or company standards, query the knowledge base to retrieve established organizational context.",
-            "5. **Honesty & Conciseness**: Be concise, actionable, and transparent about your actions.",
+            "1. **Read Before Editing (MANDATORY)**: Whenever asked to modify, append, edit, or refactor a file, you MUST FIRST call `read_file` to read the exact existing lines. NEVER guess or hallucinate `target_content`.",
+            "2. **How to Edit Files**:",
+            "   - `target_content`: The EXACT existing text currently in the file that you want to replace.",
+            "   - `replacement_content`: The new text that will replace `target_content`.",
+            "   - *Example*: If `read_file` shows line 1 is `# Project Title`, and you want to append `%` to line 1:",
+            "     Call `edit_file(path='...', target_content='# Project Title', replacement_content='# Project Title%')`.",
+            "3. **Direct Tool Invocations**: Execute tools directly. Do NOT output example ````json { ... }```` blocks in conversational text when you intend to perform an action—invoke the tool directly.",
+            "4. **Run Commands Safely**: Use `bash_executor` to execute tests, builds, linting, or scripts. Avoid destructive commands unless explicitly asked.",
+            "5. **Enterprise Institutional Memory (RAG)**: If an enterprise RAG tool (`query_knowledge_base`) is available and you encounter questions regarding internal infrastructure, deploy pipelines, architectures, or company standards, query the knowledge base to retrieve established organizational context.",
+            "6. **Conciseness & Actionability**: Be concise, actionable, and focus on delivering accurate results.",
         ]
 
         if rag_context:

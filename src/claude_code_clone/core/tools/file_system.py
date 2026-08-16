@@ -180,10 +180,10 @@ class WriteFileTool(BaseTool):
 class EditFileArgs(BaseModel):
     path: str = Field(description="The path to the file to modify")
     target_content: str = Field(
-        description="The exact block of lines to be replaced in the file"
+        description="The EXACT existing text currently in the file to be replaced. Must match existing file content."
     )
     replacement_content: str = Field(
-        description="The new block of lines to replace target_content with"
+        description="The new text that will replace target_content."
     )
     allow_multiple: bool = Field(
         default=False,
