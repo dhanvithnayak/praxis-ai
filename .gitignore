@@ -1,0 +1,37 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv/
+env/
+venv/
+
+# Environment variables & API keys
+.env
+.env.*
+!.env.example
+
+# Claude Code Clone Agent & Vector DB Storage
+.agent/
+rag_data/
+*.lance/
+
+# Cache & Testing
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+
+# Logs & History
+*.log
+history.txt
+
+# OS metadata
+.DS_Store
+Thumbs.db
