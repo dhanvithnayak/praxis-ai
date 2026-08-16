@@ -4,6 +4,7 @@ import asyncio
 
 from prompt_toolkit import PromptSession
 from prompt_toolkit.completion import WordCompleter
+from prompt_toolkit.formatted_text import HTML
 from prompt_toolkit.history import FileHistory
 
 from claude_code_clone.cli.ui.prompt import ask_user_confirmation
@@ -172,7 +173,7 @@ class InteractiveREPL:
             try:
                 # Prompt user input asynchronously
                 user_input = await self.prompt_session.prompt_async(
-                    "\n╭─ [bold cyan]You[/bold cyan]\n╰─> "
+                    HTML("\n╭─ <ansicyan><b>You</b></ansicyan>\n╰─&gt; ")
                 )
                 user_input = user_input.strip()
 
