@@ -4,16 +4,16 @@ from pathlib import Path
 
 import pytest
 
-from claude_code_clone.core.agent.types import ToolCall
-from claude_code_clone.core.tools.base import ExecutionContext
-from claude_code_clone.core.tools.bash import BashExecutorTool
-from claude_code_clone.core.tools.file_system import (
+from praxis_ai.core.agent.types import ToolCall
+from praxis_ai.core.tools.base import ExecutionContext
+from praxis_ai.core.tools.bash import BashExecutorTool
+from praxis_ai.core.tools.file_system import (
     EditFileTool,
     ReadFileTool,
     WriteFileTool,
 )
-from claude_code_clone.core.tools.registry import ToolRegistry
-from claude_code_clone.core.tools.search import FileGlobTool, GrepSearchTool
+from praxis_ai.core.tools.registry import ToolRegistry
+from praxis_ai.core.tools.search import FileGlobTool, GrepSearchTool
 
 
 @pytest.fixture

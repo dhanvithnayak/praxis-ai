@@ -4,14 +4,14 @@ from pathlib import Path
 
 import pytest
 
-from claude_code_clone.core.rag.chunking.code_chunker import CodeChunker
-from claude_code_clone.core.rag.chunking.markdown_chunker import MarkdownChunker
-from claude_code_clone.core.rag.embeddings.fastembed_provider import FastEmbedProvider
-from claude_code_clone.core.rag.engine import RAGEngine
-from claude_code_clone.core.rag.types import Document
-from claude_code_clone.core.rag.vector_store.lancedb_store import LanceDBStore
-from claude_code_clone.core.tools.base import ExecutionContext
-from claude_code_clone.core.tools.rag_tool import QueryKnowledgeBaseTool
+from praxis_ai.core.rag.chunking.code_chunker import CodeChunker
+from praxis_ai.core.rag.chunking.markdown_chunker import MarkdownChunker
+from praxis_ai.core.rag.embeddings.fastembed_provider import FastEmbedProvider
+from praxis_ai.core.rag.engine import RAGEngine
+from praxis_ai.core.rag.types import Document
+from praxis_ai.core.rag.vector_store.lancedb_store import LanceDBStore
+from praxis_ai.core.tools.base import ExecutionContext
+from praxis_ai.core.tools.rag_tool import QueryKnowledgeBaseTool
 
 
 def test_markdown_chunker():

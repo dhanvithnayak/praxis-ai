@@ -6,17 +6,17 @@ from typing import Any
 
 import pytest
 
-from claude_code_clone.core.agent.react_loop import ReActController
-from claude_code_clone.core.agent.types import (
+from praxis_ai.core.agent.react_loop import ReActController
+from praxis_ai.core.agent.types import (
     AgentMessage,
     AgentResponse,
     StreamChunk,
     ToolCall,
 )
-from claude_code_clone.core.config.permissions import PermissionManager, PermissionMode
-from claude_code_clone.core.config.settings import Settings
-from claude_code_clone.core.providers.base import BaseLLMProvider
-from claude_code_clone.core.tools.registry import ToolRegistry
+from praxis_ai.core.config.permissions import PermissionManager, PermissionMode
+from praxis_ai.core.config.settings import Settings
+from praxis_ai.core.providers.base import BaseLLMProvider
+from praxis_ai.core.tools.registry import ToolRegistry
 
 
 class MockLLMProvider(BaseLLMProvider):

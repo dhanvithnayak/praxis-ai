@@ -2,10 +2,10 @@
 
 import pytest
 
-from claude_code_clone.core.agent.types import AgentMessage, ToolCall
-from claude_code_clone.core.config.settings import Settings
-from claude_code_clone.core.providers.gateway import LiteLLMGateway
-from claude_code_clone.core.providers.models import resolve_model_name
+from praxis_ai.core.agent.types import AgentMessage, ToolCall
+from praxis_ai.core.config.settings import Settings
+from praxis_ai.core.providers.gateway import LiteLLMGateway
+from praxis_ai.core.providers.models import resolve_model_name
 
 
 def test_model_alias_resolution():

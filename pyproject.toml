@@ -1,7 +1,7 @@
 [project]
-name = "claude-code-clone"
+name = "praxis-ai"
 version = "0.1.0"
-description = "Add your description here"
+description = "Praxis AI: Autonomous Enterprise Operations & SOP-Grounded Agent Platform"
 readme = "README.md"
 authors = [
     { name = "Dhanvith Nayak", email = "dhanvithnayak@proton.me" }
@@ -22,8 +22,10 @@ dependencies = [
 ]
 
 [project.scripts]
-claude-code-clone = "claude_code_clone:main"
-agent-cli = "claude_code_clone:main"
+praxis = "praxis_ai:main"
+praxis-ai = "praxis_ai:main"
+claude-code-clone = "praxis_ai:main"
+agent-cli = "praxis_ai:main"
 
 [build-system]
 requires = ["uv_build>=0.12.5,<0.13.0"]
